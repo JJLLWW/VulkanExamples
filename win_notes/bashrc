@@ -1,0 +1,6 @@
+# linux
+# eval 'ssh-agent -s'
+
+# windows
+eval $(ssh-agent)
+ssh-add ~/.ssh/id_rsa
