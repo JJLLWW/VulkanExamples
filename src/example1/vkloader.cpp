@@ -39,13 +39,6 @@ namespace vk {
         std::clog << "[INFO] Vulkan initialisation successful" << std::endl;
         return true;
     }
-
-    std::shared_ptr<VkInstance> *GetInstance() {
-        std::shared_ptr<VkInstance>(nullptr, [](VkInstance* pvi) {
-            vkDestroyInstance
-        });
-        return nullptr;
-    }    
 }
 
 namespace {

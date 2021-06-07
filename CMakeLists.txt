@@ -26,8 +26,9 @@ elseif(UNIX)
     set(RUNTIME_LOAD_LIB "dl")
 endif()
 
+set(VULKAN_HEADERS "external/Vulkan-Headers")
 file(GLOB EXAMPLE1_SRC src/example1/*.cpp)
 
 add_executable("example1" ${EXAMPLE1_SRC})
-target_include_directories("example1" PUBLIC src)
+target_include_directories("example1" PUBLIC ${VULKAN_HEADERS} src)
 target_link_libraries("example1" ${RUNTIME_LOAD_LIB})
