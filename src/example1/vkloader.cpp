@@ -4,7 +4,12 @@
 #include <vector>
 
 #ifdef OS_LINUX
-    #include <dlfcn.h>
+#include <dlfcn.h>
+#endif
+
+#ifdef OS_WINDOWS
+// including just the relevant header (libloaderapi.h) in isolation doesn't work.
+#include <windows.h>
 #endif
 
 #define INCLUDED_FROM_LOADER
@@ -46,7 +51,11 @@ namespace {
             #ifdef OS_LINUX
                 void *dlhandle {dlopen("libvulkan.so", RTLD_LAZY)};
             #else
+            #ifdef OS_WINDOWS
+                HMODULE dlhandle {LoadLibrary("vulkan-1.dll")};
+            #else
                 void *dlhandle {nullptr};
+            #endif
             #endif
 
             if(dlhandle == nullptr)
@@ -54,10 +63,15 @@ namespace {
 
             #ifdef OS_LINUX
                 void *EntrypointAddr {dlsym(dlhandle, "vkGetInstanceProcAddr")};
-                PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr {reinterpret_cast<PFN_vkGetInstanceProcAddr>(EntrypointAddr)};
+            #else
+            #ifdef OS_WINDOWS
+                FARPROC EntrypointAddr {GetProcAddress(dlhandle, "vkGetInstanceProcAddr")};
             #else
                 PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr {nullptr};
             #endif
+            #endif
+
+            PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr {reinterpret_cast<PFN_vkGetInstanceProcAddr>(EntrypointAddr)};
 
             if(vkGetInstanceProcAddr == nullptr)
                 throw std::runtime_error("[ERROR] Vulkan loader found, but loading vkGetInstanceProcAddr failed.");
