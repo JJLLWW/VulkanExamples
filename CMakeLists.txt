@@ -28,8 +28,8 @@ elseif(UNIX)
 endif()
 
 set(VULKAN_HEADERS "external/Vulkan-Headers/include")
-file(GLOB EXAMPLE1_SRC src/example1/*.cpp)
+file(GLOB EXAMPLE1_SRC src/example1/*.cpp src/common/*.cpp)
 
 add_executable("example1" ${EXAMPLE1_SRC})
-target_include_directories("example1" PUBLIC ${VULKAN_HEADERS} src)
+target_include_directories("example1" PUBLIC ${VULKAN_HEADERS} src/common src/example1)
 target_link_libraries("example1" ${RUNTIME_LOAD_LIB})
