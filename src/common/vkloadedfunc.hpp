@@ -218,3 +218,30 @@ VK_INSTANCE_FUNC(vkCmdDrawIndexedIndirectCount);
 VK_INSTANCE_FUNC(vkGetBufferOpaqueCaptureAddress);
 VK_INSTANCE_FUNC(vkGetBufferDeviceAddress);
 VK_INSTANCE_FUNC(vkGetDeviceMemoryOpaqueCaptureAddress);
+
+// surface extensions (instance level)
+// #if defined(USE_SURFACE_EXTENSIONS)
+VK_INSTANCE_FUNC(vkDestroySurfaceKHR);
+VK_INSTANCE_FUNC(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+VK_INSTANCE_FUNC(vkGetPhysicalDeviceSurfaceFormatsKHR);
+VK_INSTANCE_FUNC(vkGetPhysicalDeviceSurfacePresentModesKHR);
+VK_INSTANCE_FUNC(vkGetPhysicalDeviceSurfaceSupportKHR);
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+VK_INSTANCE_FUNC(vkCreateXcbSurfaceKHR);
+#elif defined(VK_USE_PLATFORM_XLIB_KHR)
+VK_INSTANCE_FUNC(vkCreateXlibSurfaceKHR);
+#elif defined(VK_USE_PLATFORM_WIN32_KHR)
+VK_INSTANCE_FUNC(vkCreateWin32SurfaceKHR);
+#endif
+// #endif
+
+// // swapchain extensions (device level)
+// VK_INSTANCE_FUNC(vkAcquireNextImageKHR);
+// VK_INSTANCE_FUNC(vkCreateSwapchainKHR);
+// VK_INSTANCE_FUNC(vkDestroySwapchainKHR);
+// VK_INSTANCE_FUNC(vkGetSwapchainImagesKHR);
+// VK_INSTANCE_FUNC(vkQueuePresentKHR);
+// VK_INSTANCE_FUNC(vkAcquireNextImage2KHR);
+// VK_INSTANCE_FUNC(vkGetDeviceGroupPresentCapabilitiesKHR);
+// VK_INSTANCE_FUNC(vkGetDeviceGroupSurfacePresentModesKHR);
+// VK_INSTANCE_FUNC(vkGetPhysicalDevicePresentRectanglesKHR);

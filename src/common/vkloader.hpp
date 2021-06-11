@@ -15,6 +15,7 @@
 
 namespace vk {
     bool InitVulkan();
+    extern const VkInstanceCreateInfo default_instance_info, debug_instance_info;
     std::shared_ptr<VkInstance> GetVkInstance(VkInstanceCreateInfo *create_info = nullptr);
     void DebugLogLayerExt(std::ostream& log = std::clog);
 }
