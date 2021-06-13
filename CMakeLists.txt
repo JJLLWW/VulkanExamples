@@ -1,10 +1,9 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.14)
+
 project("vulkan_examples" 
         VERSION 1.0.0 
         DESCRIPTION "example code for the vulkan graphics API"
         LANGUAGES C CXX) 
-
-set(CMAKE_CXX_STANDARD 20)
 
 # if CMAKE_BUILD_TYPE is unspecified by the user, it defaults to the value it
 # was set to on the last invocation of cmake, as this is cached in CMakeCache.txt.
@@ -15,23 +14,7 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     message(STATUS "Release Build")
 endif()
 
-# OS specific code
-if(APPLE)
-    message(FATAL_ERROR "Vulkan is not supported on MacOS (!)")
-elseif(WIN32)
-    message(STATUS "Using Windows platform")
-    add_compile_definitions(OS_WINDOWS VK_USE_PLATFORM_WIN32_KHR)
-elseif(UNIX)
-    message(STATUS "Using Linux platform")
-    add_compile_definitions(OS_LINUX VK_USE_PLATFORM_XLIB_KHR)
-    find_package(X11 REQUIRED)
-    set(OS_INCLUDE ${X11_INCLUDE_DIR})
-    set(OS_LIBS "dl" ${X11_LIBRARIES})
-endif()
+# order of add_subdirectories is important
+add_subdirectory("external") 
+add_subdirectory("src")
 
-set(VULKAN_HEADERS "external/Vulkan-Headers/include")
-file(GLOB EXAMPLE1_SRC src/example1/*.cpp src/common/*.cpp)
-
-add_executable("example1" ${EXAMPLE1_SRC})
-target_include_directories("example1" PUBLIC ${VULKAN_HEADERS} ${OS_INCLUDE} src/common src/example1)
-target_link_libraries("example1" ${OS_LIBS})
