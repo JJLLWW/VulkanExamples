@@ -2,45 +2,38 @@
     vkapi.hpp: Provides global function pointer declarations for the core Vulkan API functions, and
     a small set of supported extensions.
     
-    If a working Vulkan Loader is detected, the interface uses it to load addresses of the implementations
-    of these functions, and assigns them to the function pointers. 
+    -If a working Vulkan Loader is detected, the interface uses it to load addresses of the implementations
+    -of these functions, and assigns them to the function pointers. 
 
-    Any source file that needs to use a Vulkan API function must include this header.  
+    -Any source file that needs to use a Vulkan API function must include this header. 
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, version 3.
+    
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    General Public License for more details.
+    
+    You should have received a copy of the GNU General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>. 
 */
 
 // No "#pragma once", only contains declarations and multiple inclusion is necessary in the implementation.
 
 #define VK_NO_PROTOTYPES
-#include "vulkan/vulkan.h"
+#include <vulkan/vulkan.h>
 
-#if defined(INCLUDED_FROM_LOADER)
-#define VK_ENTRYPOINT_FUNC(fun) PFN_##fun fun
-#define VK_GLOBAL_FUNC(fun) PFN_##fun fun
-#define VK_INSTANCE_FUNC(fun) PFN_##fun fun
-#else
+#ifndef VK_ENTRYPOINT_FUNC
 #define VK_ENTRYPOINT_FUNC(fun) extern PFN_##fun fun
+#endif
+#ifndef VK_GLOBAL_FUNC
 #define VK_GLOBAL_FUNC(fun) extern PFN_##fun fun
+#endif
+#ifndef VK_INSTANCE_FUNC
 #define VK_INSTANCE_FUNC(fun) extern PFN_##fun fun
 #endif
-
-#ifdef LOAD_GLOBAL_FUNCS
-#undef VK_GLOBAL_FUNC
-#define VK_GLOBAL_FUNC(fun) \
-fun = reinterpret_cast<PFN_##fun>(::vkGetInstanceProcAddr(nullptr, #fun)); \
-    if(fun == nullptr) { \
-        throw std::runtime_error("[ERROR] Loading global-level function " #fun " failed."); \
-    } 
-#endif
-
-#ifdef LOAD_INSTANCE_FUNCS
-#undef VK_INSTANCE_FUNC
-#define VK_INSTANCE_FUNC(fun) \
-fun = reinterpret_cast<PFN_##fun>(::vkGetInstanceProcAddr(instance, #fun)); \
-    if(fun == nullptr) { \
-        throw std::runtime_error("[ERROR] Loading instance-level function " #fun " failed."); \
-    } 
-#endif
-
 
 // Entrypoint to the Vulkan Loader, used to load the core Vulkan API and all extensions.
 VK_ENTRYPOINT_FUNC(vkGetInstanceProcAddr);

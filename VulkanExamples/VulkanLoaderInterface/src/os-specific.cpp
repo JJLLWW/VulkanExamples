@@ -1,10 +1,22 @@
 /*
     os-specific.cpp: Implementation of Vulkan Loader detection and usage interface.
 
-    File for any operating system specific code in the implementation.
+    - File for any operating system specific code in the implementation.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, version 3.
+    
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    General Public License for more details.
+    
+    You should have received a copy of the GNU General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "vkli/vkapi.hpp"
+#include "vkli-internal.hpp"
 
 #include <stdexcept>
 
@@ -42,6 +54,8 @@ namespace vkli {
                 throw std::runtime_error("[ERROR] Vulkan loader found, but loading vkGetInstanceProcAddr failed.");
         };
 
+        void CreateSurface(std::shared_ptr<VkInstance> instance) {
 
+        };
     }
 }

@@ -1,33 +1,40 @@
 /*
     vkli.cpp: Implementation of Vulkan Loader detection and usage interface.
 
-    Provides the implementation of any exposed functions/classes in vkli.hpp.
+    -Provides the implementation of any exposed functions/classes in vkli.hpp.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, version 3.
+    
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    General Public License for more details.
+    
+    You should have received a copy of the GNU General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "vkli-internal.hpp"
-#define INCLUDED_FROM_LOADER
-#include "vkli/vkapi.hpp"
 
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <vector>
 
-#if defined(OS_LINUX)
-#include <dlfcn.h>
-#elif defined(OS_WINDOWS)
-// including just the relevant header (libloaderapi.h) in isolation doesn't work.
-#include <windows.h>
-#endif
+#define VK_ENTRYPOINT_FUNC(fun) PFN_##fun fun
+#define VK_GLOBAL_FUNC(fun) PFN_##fun fun
+#define VK_INSTANCE_FUNC(fun) PFN_##fun fun
+#include "vkli/vkapi.hpp"
+
 
 namespace {
     void LoadGlobalLevelFunctions();
     void LoadInstanceLevelFunctions(VkInstance instance);
-    void PlatformSpecificCreateSurface(std::shared_ptr<VkInstance> instance);
 }
 
 namespace vkli {
-
     bool InitVulkan() {
         try {
             os::LoadEntrypoint();
@@ -84,22 +91,26 @@ namespace vkli {
 
 namespace {
     void LoadGlobalLevelFunctions() {
-        #define LOAD_GLOBAL_FUNCS
-        #include "vkli/vkapi.hpp"
-        #undef LOAD_GLOBAL_FUNCS
-    }
+        #define LOAD_GLOBAL_FUNC(fun) \
+        fun = reinterpret_cast<PFN_##fun>(::vkGetInstanceProcAddr(nullptr, #fun)); \
+        if(fun == nullptr) { \
+            throw std::runtime_error("[ERROR] Loading instance-level function " #fun " failed."); \
+        } 
 
-    
+        #define VK_GLOBAL_FUNC LOAD_GLOBAL_FUNC
+        #include "vkli/vkapi.hpp"
+        #undef VK_GLOBAL_FUNC
+    }
 
     void LoadInstanceLevelFunctions(VkInstance instance) {
-        #define LOAD_INSTANCE_FUNCS
-        #include "vkli/vkapi.hpp"
-        #undef LOAD_INSTANCE_FUNCS
-    }
+        #define LOAD_INSTANCE_FUNC(fun) \
+        fun = reinterpret_cast<PFN_##fun>(::vkGetInstanceProcAddr(instance, #fun)); \
+        if(fun == nullptr) { \
+            throw std::runtime_error("[ERROR] Loading instance-level function " #fun " failed."); \
+        } 
 
-    void PlatformSpecificCreateSurface(std::shared_ptr<VkInstance> instance) {
-    #if defined(VK_USE_PLATFORM_XLIB_KHR)
-    // vkCreateXlibSurfaceKHR(instance.get());
-    #endif
+        #define VK_INSTANCE_FUNC LOAD_INSTANCE_FUNC
+        #include "vkli/vkapi.hpp"
+        #undef VK_INSTANCE_FUNC
     }
 }
