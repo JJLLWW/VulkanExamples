@@ -1,7 +1,14 @@
 /* 
-    vkloadedfunc.hpp: Provides function pointer declarations for the core Vulkan API functions, these function
-    pointers are defined and implemented if a working Vulkan Loaoder is detected.
+    vkapi.hpp: Provides global function pointer declarations for the core Vulkan API functions, and
+    a small set of supported extensions.
+    
+    If a working Vulkan Loader is detected, the interface uses it to load addresses of the implementations
+    of these functions, and assigns them to the function pointers. 
+
+    Any source file that needs to use a Vulkan API function must include this header.  
 */
+
+// No "#pragma once", only contains declarations and multiple inclusion is necessary in the implementation.
 
 #define VK_NO_PROTOTYPES
 #include "vulkan/vulkan.h"
@@ -35,7 +42,7 @@ fun = reinterpret_cast<PFN_##fun>(::vkGetInstanceProcAddr(instance, #fun)); \
 #endif
 
 
-// Entrypoint to the loader.
+// Entrypoint to the Vulkan Loader, used to load the core Vulkan API and all extensions.
 VK_ENTRYPOINT_FUNC(vkGetInstanceProcAddr);
 
 // Global level functions

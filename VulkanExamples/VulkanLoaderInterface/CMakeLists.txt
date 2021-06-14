@@ -9,11 +9,15 @@ add_library(${PROJECT_NAME} STATIC)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 target_include_directories(${PROJECT_NAME} 
         PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        include
+        PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
 target_sources(${PROJECT_NAME} 
         PRIVATE
-        vkloader.cpp
+        src/vkli.cpp
+        src/os-specific.cpp
+        src/vkli-helpers.cpp
 )
 
 # OS specific code
