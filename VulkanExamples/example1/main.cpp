@@ -18,9 +18,23 @@
 #include <memory>
 
 int main() {
-    if(vkli::InitVulkan()) {
-        vkli::DebugLogLayerExt();
-        std::shared_ptr<VkInstance> instance {vkli::GetVkInstance()};
+    vkli::VkLoader test_loader;
+    std::vector<vkli::PriorityList> layers { { "VK_LAYER_KHRONOS_validation"} };
+    std::vector<vkli::PriorityList> extensions {{"VK_KHR_surface"}};
+    test_loader.CreateInstance(layers, extensions);
+    auto opt_exts {test_loader.ListSupportedExt()};
+    auto opt_lyrs {test_loader.ListSupportedLayers()};
+
+    if(opt_exts.has_value()) {
+        for(const auto& ext : opt_exts.value()) {
+            std::clog << std::string(ext) << std::endl;
+        }   
+    }
+
+    if(opt_lyrs.has_value()) {
+        for(const auto& lyr : opt_lyrs.value()) {
+            std::clog << std::string(lyr) << std::endl;
+        }
     }
 }
 

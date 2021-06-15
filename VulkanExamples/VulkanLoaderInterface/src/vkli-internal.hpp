@@ -20,16 +20,32 @@
 
 #include <vector>
 #include <memory>
+#include <iostream>
 
-#define DEFINE_VKAPI_FUNC(fun) PFN_##fun fun
-
+typedef void (*VkInstanceDeleter)(VkInstance*);
 
 namespace vkli {
-    namespace helpers {
-        VkInstance GetRawInstance(VkInstanceCreateInfo *create_info = nullptr);
-    }
-
     namespace os {
         void LoadEntrypoint();
+    }
+
+    // helper functions
+    namespace helpers {
+        void LoadGlobalLevelFunctions();
+        void LoadInstanceLevelFunctions(VkInstance instance);
+        VkInstance GetRawInstance(VkInstanceCreateInfo *create_info);
+    }
+
+    // helper data
+    namespace helpers {
+        // TEMPORARY HACK WARNING: the sType field is changed, so that code passing a reference can have 
+        // a null case.
+        inline VkInstanceCreateInfo NO_CREATE_INFO = {VK_STRUCTURE_TYPE_APPLICATION_INFO, nullptr, 0, nullptr, 0, nullptr, 0};
+        inline VkInstanceDeleter InstanceDeleter = [](VkInstance *inst) {
+            std::clog << "[INFO] Vulkan instance destroyed" << std::endl;
+            if(vkDestroyInstance != nullptr)
+                vkDestroyInstance(*inst, nullptr);
+            delete inst; 
+        };
     }
 }
