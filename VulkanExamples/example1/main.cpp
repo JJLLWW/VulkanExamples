@@ -36,6 +36,14 @@ int main() {
             std::clog << std::string(lyr) << std::endl;
         }
     }
+
+    auto dev_properties {test_loader.ListPhysicalDevices()};
+    if(!opt_exts.has_value())
+        std::clog << "NO PHYSICAL DEVICES!" << std::endl;
+
+    for(const auto& dev : dev_properties.value()) {
+        std::clog << dev.deviceName << std::endl;
+    }
 }
 
 

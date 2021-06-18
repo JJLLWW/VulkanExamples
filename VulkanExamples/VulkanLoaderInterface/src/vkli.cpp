@@ -38,10 +38,11 @@ namespace vkli {
 
      std::optional<std::vector<std::string>> VkLoader::ListSupportedLayers() const {
         uint32_t nLyr;
-        vkEnumerateInstanceLayerProperties(&nLyr, nullptr);
+        if(vkEnumerateInstanceLayerProperties(&nLyr, nullptr) != VK_SUCCESS) 
+            return {};
+
         std::vector<VkLayerProperties> LyrProperties {nLyr};
         std::vector<std::string> LyrNames;
-
         if(vkEnumerateInstanceLayerProperties(&nLyr, LyrProperties.data()) != VK_SUCCESS)
             return {};
 
@@ -55,10 +56,11 @@ namespace vkli {
 
     std::optional<std::vector<std::string>> VkLoader::ListSupportedExt() const {
         uint32_t nExt;
-        vkEnumerateInstanceExtensionProperties(nullptr, &nExt, nullptr);
+        if(vkEnumerateInstanceExtensionProperties(nullptr, &nExt, nullptr) != VK_SUCCESS)
+            return {};
+
         std::vector<VkExtensionProperties> ExtProperties {nExt};
         std::vector<std::string> ExtNames;
-        
         if(vkEnumerateInstanceExtensionProperties(nullptr, &nExt, ExtProperties.data()) != VK_SUCCESS)
             return {};
 
@@ -68,6 +70,24 @@ namespace vkli {
 
         // Return Value Optimization
         return ExtNames;
+    }
+
+    std::optional<std::vector<VkPhysicalDeviceProperties>> VkLoader::ListPhysicalDevices() const {
+        uint32_t nDev;
+        if(vkEnumeratePhysicalDevices(*m_Instance, &nDev, nullptr) != VK_SUCCESS)
+            return {};
+
+        std::vector<VkPhysicalDevice> PhysDevs {nDev};
+        std::vector<VkPhysicalDeviceProperties> Props {nDev};
+        if(vkEnumeratePhysicalDevices(*m_Instance, &nDev, PhysDevs.data()) != VK_SUCCESS)
+            return {};
+
+        for(int i = 0; i < nDev; i++) {
+            vkGetPhysicalDeviceProperties(PhysDevs[i], &Props[i]);  
+        }
+
+        // Return Value Optimization
+        return Props;
     }
 
     bool VkLoader::CreateInstance(VkInstanceCreateInfo& create_info) {
@@ -162,9 +182,5 @@ namespace vkli {
                 }       
             }
         }
-    }
-
-    std::optional<std::vector<std::string>> VkLoader::ListPhysicalDevs() const {
-
     }
 }

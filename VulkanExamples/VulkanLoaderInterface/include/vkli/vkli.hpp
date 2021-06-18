@@ -48,8 +48,9 @@ namespace vkli {
         public:
             // this constructor will throw a std::runtime_error if a working Vulkan Loader cannot be found.
             VkLoader();
-            std::optional<PriorityList> ListSupportedLayers() const;
-            std::optional<PriorityList> ListSupportedExt() const;
+            std::optional<std::vector<std::string>> ListSupportedLayers() const;
+            std::optional<std::vector<std::string>> ListSupportedExt() const; 
+            std::optional<std::vector<VkPhysicalDeviceProperties>> ListPhysicalDevices() const;
             bool CreateInstance(VkInstanceCreateInfo& create_info);
             bool CreateInstance(std::vector<std::string>& layers,
                                 std::vector<std::string>& extensions,
@@ -57,8 +58,6 @@ namespace vkli {
             bool CreateInstance(std::vector<PriorityList>& layers, 
                                 std::vector<PriorityList>& extensions, 
                                 VkApplicationInfo& app_info = default_app_info);
-           
-            std::optional<std::vector<std::string>> ListPhysicalDevs() const;
         private:
             void FillFromPriorityLists(std::vector<std::string>& output, 
                                        const std::vector<PriorityList>& PLists,
