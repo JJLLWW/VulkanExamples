@@ -33,5 +33,5 @@ elseif(UNIX)
     target_link_libraries(${PROJECT_NAME} PUBLIC X11::X11 dl)
 endif()
 
-target_link_libraries(${PROJECT_NAME} PUBLIC Vulkan::Headers)
+target_link_libraries(${PROJECT_NAME} PUBLIC Vulkan::Headers GLFW::GLFW)
 add_library(VKLInterface::VKLInterface ALIAS ${PROJECT_NAME})

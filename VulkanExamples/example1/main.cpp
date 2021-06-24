@@ -13,11 +13,16 @@
 */
 
 #include "vkli/vkli.hpp"
+#include "GLFW/glfw3.h"
 
 #include <vector>
 #include <memory>
 
 int main() {
+    // is GLFW working?
+    glfwInit();
+    std::cout << glfwGetVersionString() << std::endl;
+    
     vkli::VkLoader test_loader;
     std::vector<vkli::PriorityList> layers { { "VK_LAYER_KHRONOS_validation"} };
     std::vector<vkli::PriorityList> extensions {{"VK_KHR_surface"}};

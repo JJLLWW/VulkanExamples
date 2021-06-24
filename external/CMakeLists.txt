@@ -1,3 +1,4 @@
+# === VULKAN HEADERS ===
 # if find_package(Vulkan REQUIRED) has been called, don't mess up its Vulkan::Headers target.
 if(TARGET Vulkan::Headers)
     message(STATUS "Using system vulkan headers.")
@@ -12,3 +13,7 @@ else()
     add_library(Vulkan::Headers ALIAS VulkanHeaders)
 endif()
 
+# === GLFW ===
+add_subdirectory(glfw)
+# dirty, assume the glfw library target is still called glfw.
+add_library(GLFW::GLFW ALIAS glfw)
