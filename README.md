@@ -5,7 +5,8 @@ Windows or Linux.
 
 ## Contents
 
-(nothing works yet lol)
+[this is all still in very early development]
+If you're lucky a window will come up on Linux :). 
 
 ## Cloning
 

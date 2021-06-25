@@ -30,10 +30,17 @@
 #include "vkli/vkapi.hpp"
 
 namespace vkli {
-    VkLoader::VkLoader() {
+    VkLoader::VkLoader() : m_Surface{nullptr}, m_Window{nullptr}, m_Instance{nullptr} {
         os::LoadEntrypoint();
         helpers::LoadGlobalLevelFunctions();
         std::clog << "[INFO] Vulkan initialisation successful" << std::endl;
+    }
+
+    VkLoader::~VkLoader() {
+        // temporary
+        if(m_Window) glfwDestroyWindow(m_Window);
+        if(m_Surface) vkDestroySurfaceKHR(m_Instance, *m_Surface, nullptr);
+        if(m_Instance) vkDestroyInstance(m_Instance, nullptr);
     }
 
      std::optional<std::vector<std::string>> VkLoader::ListSupportedLayers() const {
@@ -74,12 +81,12 @@ namespace vkli {
 
     std::optional<std::vector<VkPhysicalDeviceProperties>> VkLoader::ListPhysicalDevices() const {
         uint32_t nDev;
-        if(vkEnumeratePhysicalDevices(*m_Instance, &nDev, nullptr) != VK_SUCCESS)
+        if(vkEnumeratePhysicalDevices(m_Instance, &nDev, nullptr) != VK_SUCCESS)
             return {};
 
         std::vector<VkPhysicalDevice> PhysDevs {nDev};
         std::vector<VkPhysicalDeviceProperties> Props {nDev};
-        if(vkEnumeratePhysicalDevices(*m_Instance, &nDev, PhysDevs.data()) != VK_SUCCESS)
+        if(vkEnumeratePhysicalDevices(m_Instance, &nDev, PhysDevs.data()) != VK_SUCCESS)
             return {};
 
         for(int i = 0; i < nDev; i++) {
@@ -90,10 +97,11 @@ namespace vkli {
         return Props;
     }
 
-    bool VkLoader::CreateInstance(VkInstanceCreateInfo& create_info) {
+    bool VkLoader::CreateInstance(VkInstanceCreateInfo& create_info, bool silent) {
          try {
-            std::shared_ptr<VkInstance> instance(new VkInstance {helpers::GetRawInstance(&create_info)}, helpers::InstanceDeleter);
-            helpers::LoadInstanceLevelFunctions(*instance);
+            // std::shared_ptr<VkInstance> instance(new VkInstance {helpers::GetRawInstance(&create_info)}, helpers::InstanceDeleter);
+            VkInstance instance {helpers::GetRawInstance(&create_info)};
+            helpers::LoadInstanceLevelFunctions(instance);
             m_Instance = instance;
             } catch(std::runtime_error& e) {
             std::clog << e.what() << std::endl;
@@ -149,6 +157,7 @@ namespace vkli {
         return CreateInstance(create_info);
     }
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!! THIS VARIANT IS BROKEN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // if none of the listed etensions are valid, create a default vkInstance.
     bool VkLoader::CreateInstance(std::vector<PriorityList>& layers_pl, 
                                   std::vector<PriorityList>& extensions_pl, 
@@ -182,5 +191,16 @@ namespace vkli {
                 }       
             }
         }
+    }
+
+    bool VkLoader::CreateSurface() {
+        // don't create an OpenGL context.
+        VkSurfaceKHR *surface;
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); 
+        m_Window = glfwCreateWindow(1000, 1000, "test", nullptr, nullptr);
+        if(glfwCreateWindowSurface(m_Instance, m_Window, nullptr, surface) != VK_SUCCESS)
+            return false; 
+        m_Surface = surface;
+        return true;
     }
 }

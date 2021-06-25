@@ -53,26 +53,5 @@ namespace vkli {
             if(vkGetInstanceProcAddr == nullptr)
                 throw std::runtime_error("[ERROR] Vulkan loader found, but loading vkGetInstanceProcAddr failed.");
         };
-
-        // void CreateSurface(std::shared_ptr<VkInstance> instance) {
-        //     // std::shared_ptr surfacep {new VkSurfaceKHR, [](VkSurfaceKHR *p){vkDestroySurfaceKHR()}};
-        //     VkSurfaceKHR surface;
-
-        //     #if defined(VK_USE_PLATFORM_XLIB_KHR)
-        //     Display *display {XOpenDisplay(nullptr)};
-        //     Window root_win {DefaultRootWindow(display)};
-        //     unsigned long black {BlackPixel(display, DefaultScreen(display))};
-        //     Window window = XCreateSimpleWindow(display, root_win, 0, 0, 1000, 1000, 0, black, black);
-
-        //     VkXlibSurfaceCreateInfoKHR surface_info = {
-        //         VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
-        //         NULL,
-        //         0,
-        //         display,
-        //         window
-        //     };
-        //     vkCreateXlibSurfaceKHR(instance.get(), &surface_info, nullptr, &surface);
-        //     #endif
-        // };
     }
 }

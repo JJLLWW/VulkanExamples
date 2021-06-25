@@ -219,8 +219,7 @@ VK_INSTANCE_FUNC(vkGetBufferOpaqueCaptureAddress);
 VK_INSTANCE_FUNC(vkGetBufferDeviceAddress);
 VK_INSTANCE_FUNC(vkGetDeviceMemoryOpaqueCaptureAddress);
 
-// surface extensions (instance level)
-#if defined(USE_SURFACE_EXTENSIONS)
+// surface extensions (instance level). These are always implemented by the loader.
 VK_INSTANCE_FUNC(vkDestroySurfaceKHR);
 VK_INSTANCE_FUNC(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
 VK_INSTANCE_FUNC(vkGetPhysicalDeviceSurfaceFormatsKHR);
@@ -232,7 +231,6 @@ VK_INSTANCE_FUNC(vkCreateXcbSurfaceKHR);
 VK_INSTANCE_FUNC(vkCreateXlibSurfaceKHR);
 #elif defined(VK_USE_PLATFORM_WIN32_KHR)
 VK_INSTANCE_FUNC(vkCreateWin32SurfaceKHR);
-#endif
 #endif
 
 // // swapchain extensions (device level)

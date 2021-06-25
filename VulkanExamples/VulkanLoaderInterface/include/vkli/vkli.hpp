@@ -21,6 +21,7 @@
 #pragma once
 
 #include "vkli/vkapi.hpp"
+#include "GLFW/glfw3.h"
 
 #include <iostream>
 #include <memory>
@@ -48,22 +49,27 @@ namespace vkli {
         public:
             // this constructor will throw a std::runtime_error if a working Vulkan Loader cannot be found.
             VkLoader();
+            ~VkLoader();
             std::optional<std::vector<std::string>> ListSupportedLayers() const;
             std::optional<std::vector<std::string>> ListSupportedExt() const; 
             std::optional<std::vector<VkPhysicalDeviceProperties>> ListPhysicalDevices() const;
-            bool CreateInstance(VkInstanceCreateInfo& create_info);
+            bool CreateInstance(VkInstanceCreateInfo& create_info, bool silent = false);
             bool CreateInstance(std::vector<std::string>& layers,
                                 std::vector<std::string>& extensions,
                                 VkApplicationInfo& app_info = default_app_info);
             bool CreateInstance(std::vector<PriorityList>& layers, 
                                 std::vector<PriorityList>& extensions, 
                                 VkApplicationInfo& app_info = default_app_info);
+            bool CreateSurface();
         private:
             void FillFromPriorityLists(std::vector<std::string>& output, 
                                        const std::vector<PriorityList>& PLists,
                                        VkApplicationInfo&         app_info,
                                        LyrOrExt                   type);
         private:
-            std::shared_ptr<VkInstance> m_Instance;
+            // std::shared_ptr<VkInstance> m_Instance; 
+            VkInstance m_Instance;
+            GLFWwindow *m_Window; // temporary
+            VkSurfaceKHR *m_Surface; // temporary
     };
 }

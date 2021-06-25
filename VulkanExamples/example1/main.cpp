@@ -17,6 +17,8 @@
 
 #include <vector>
 #include <memory>
+// temporary
+#include <unistd.h>
 
 int main() {
     // is GLFW working?
@@ -24,8 +26,12 @@ int main() {
     std::cout << glfwGetVersionString() << std::endl;
     
     vkli::VkLoader test_loader;
-    std::vector<vkli::PriorityList> layers { { "VK_LAYER_KHRONOS_validation"} };
-    std::vector<vkli::PriorityList> extensions {{"VK_KHR_surface"}};
+    std::vector<std::string> layers {"VK_LAYER_KHRONOS_validation"};
+    std::vector<std::string> extensions {VK_KHR_SURFACE_EXTENSION_NAME, 
+    #if defined(VK_USE_PLATFORM_XLIB_KHR) 
+        "VK_KHR_xlib_surface"
+    #endif
+    };
     test_loader.CreateInstance(layers, extensions);
     auto opt_exts {test_loader.ListSupportedExt()};
     auto opt_lyrs {test_loader.ListSupportedLayers()};
@@ -42,13 +48,9 @@ int main() {
         }
     }
 
-    auto dev_properties {test_loader.ListPhysicalDevices()};
-    if(!opt_exts.has_value())
-        std::clog << "NO PHYSICAL DEVICES!" << std::endl;
-
-    for(const auto& dev : dev_properties.value()) {
-        std::clog << dev.deviceName << std::endl;
-    }
+    std::cout << test_loader.CreateSurface() << std::endl;
+    // temporary
+    sleep(3);
 }
 
 

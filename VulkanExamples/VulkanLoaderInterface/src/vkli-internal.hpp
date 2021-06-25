@@ -17,6 +17,7 @@
 #pragma once
 
 #include "vkli/vkapi.hpp"
+#include "GLFW/glfw3.h"
 
 #include <vector>
 #include <memory>
@@ -38,9 +39,6 @@ namespace vkli {
 
     // helper data
     namespace helpers {
-        // TEMPORARY HACK WARNING: the sType field is changed, so that code passing a reference can have 
-        // a null case.
-        inline VkInstanceCreateInfo NO_CREATE_INFO = {VK_STRUCTURE_TYPE_APPLICATION_INFO, nullptr, 0, nullptr, 0, nullptr, 0};
         inline VkInstanceDeleter InstanceDeleter = [](VkInstance *inst) {
             std::clog << "[INFO] Vulkan instance destroyed" << std::endl;
             if(vkDestroyInstance != nullptr)

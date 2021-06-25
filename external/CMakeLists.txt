@@ -16,4 +16,5 @@ endif()
 # === GLFW ===
 add_subdirectory(glfw)
 # dirty, assume the glfw library target is still called glfw.
+target_include_directories(glfw PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/glfw/include>)
 add_library(GLFW::GLFW ALIAS glfw)
