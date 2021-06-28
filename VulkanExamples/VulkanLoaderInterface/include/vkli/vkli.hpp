@@ -27,7 +27,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <optional>
 
 namespace vkli {
     inline VkApplicationInfo default_app_info {
@@ -45,15 +44,25 @@ namespace vkli {
 
     enum LyrOrExt {LAYER, EXTENSION};
 
+    struct LoaderInfo {
+        std::vector<VkLayerProperties> layers;
+        std::vector<std::string> lyrnames;
+        std::vector<VkExtensionProperties> extensions;
+        std::vector<std::string> extnames;
+
+    };
+
+    struct InstanceInfo {
+        std::vector<VkPhysicalDevice> devices;
+        std::vector<VkPhysicalDeviceProperties> dev_props;
+    };
+
     class VkLoader {
         public:
             // this constructor will throw a std::runtime_error if a working Vulkan Loader cannot be found.
             VkLoader();
             ~VkLoader();
-            std::optional<std::vector<std::string>> ListSupportedLayers() const;
-            std::optional<std::vector<std::string>> ListSupportedExt() const; 
-            std::optional<std::vector<VkPhysicalDeviceProperties>> ListPhysicalDevices() const;
-            bool CreateInstance(VkInstanceCreateInfo& create_info, bool silent = false);
+            bool CreateInstance(VkInstanceCreateInfo& create_info);
             bool CreateInstance(std::vector<std::string>& layers,
                                 std::vector<std::string>& extensions,
                                 VkApplicationInfo& app_info = default_app_info);
@@ -61,15 +70,18 @@ namespace vkli {
                                 std::vector<PriorityList>& extensions, 
                                 VkApplicationInfo& app_info = default_app_info);
             bool CreateSurface();
+        public:
+            LoaderInfo m_ldrinfo;
+            InstanceInfo m_instinfo;
         private:
+            void InitLoaderInfo();
+            void InitInstanceInfo();
             void FillFromPriorityLists(std::vector<std::string>& output, 
                                        const std::vector<PriorityList>& PLists,
-                                       VkApplicationInfo&         app_info,
                                        LyrOrExt                   type);
         private:
-            // std::shared_ptr<VkInstance> m_Instance; 
             VkInstance m_Instance;
-            GLFWwindow *m_Window; // temporary
+            GLFWwindow *m_Window;
             VkSurfaceKHR *m_Surface; // temporary
     };
 }

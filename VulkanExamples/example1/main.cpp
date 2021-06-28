@@ -20,11 +20,7 @@
 // temporary
 #include <unistd.h>
 
-int main() {
-    // is GLFW working?
-    glfwInit();
-    std::cout << glfwGetVersionString() << std::endl;
-    
+int main() {    
     vkli::VkLoader test_loader;
     std::vector<std::string> layers {"VK_LAYER_KHRONOS_validation"};
     std::vector<std::string> extensions {VK_KHR_SURFACE_EXTENSION_NAME, 
@@ -33,24 +29,14 @@ int main() {
     #endif
     };
     test_loader.CreateInstance(layers, extensions);
-    auto opt_exts {test_loader.ListSupportedExt()};
-    auto opt_lyrs {test_loader.ListSupportedLayers()};
 
-    if(opt_exts.has_value()) {
-        for(const auto& ext : opt_exts.value()) {
-            std::clog << std::string(ext) << std::endl;
-        }   
-    }
-
-    if(opt_lyrs.has_value()) {
-        for(const auto& lyr : opt_lyrs.value()) {
-            std::clog << std::string(lyr) << std::endl;
-        }
+    for(const auto& layer : test_loader.m_ldrinfo.layers) {
+        std::cerr << layer.layerName << std::endl; 
     }
 
     std::cout << test_loader.CreateSurface() << std::endl;
     // temporary
-    sleep(3);
+    sleep(1);
 }
 
 

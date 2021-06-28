@@ -30,74 +30,22 @@
 #include "vkli/vkapi.hpp"
 
 namespace vkli {
-    VkLoader::VkLoader() : m_Surface{nullptr}, m_Window{nullptr}, m_Instance{nullptr} {
+    VkLoader::VkLoader() : m_Surface{nullptr}, m_Instance{nullptr} {
+        glfwInit();
         os::LoadEntrypoint();
         helpers::LoadGlobalLevelFunctions();
-        std::clog << "[INFO] Vulkan initialisation successful" << std::endl;
+        InitLoaderInfo();
+        std::clog << "[INFO] Vulkan Loader initialisation successful" << std::endl;
     }
 
     VkLoader::~VkLoader() {
         // temporary
-        if(m_Window) glfwDestroyWindow(m_Window);
         if(m_Surface) vkDestroySurfaceKHR(m_Instance, *m_Surface, nullptr);
         if(m_Instance) vkDestroyInstance(m_Instance, nullptr);
+        glfwTerminate();
     }
 
-     std::optional<std::vector<std::string>> VkLoader::ListSupportedLayers() const {
-        uint32_t nLyr;
-        if(vkEnumerateInstanceLayerProperties(&nLyr, nullptr) != VK_SUCCESS) 
-            return {};
-
-        std::vector<VkLayerProperties> LyrProperties {nLyr};
-        std::vector<std::string> LyrNames;
-        if(vkEnumerateInstanceLayerProperties(&nLyr, LyrProperties.data()) != VK_SUCCESS)
-            return {};
-
-        for(const auto& Property : LyrProperties) {
-            LyrNames.push_back(Property.layerName);
-        }
-
-        // Return Value Optimization
-        return LyrNames;
-    }
-
-    std::optional<std::vector<std::string>> VkLoader::ListSupportedExt() const {
-        uint32_t nExt;
-        if(vkEnumerateInstanceExtensionProperties(nullptr, &nExt, nullptr) != VK_SUCCESS)
-            return {};
-
-        std::vector<VkExtensionProperties> ExtProperties {nExt};
-        std::vector<std::string> ExtNames;
-        if(vkEnumerateInstanceExtensionProperties(nullptr, &nExt, ExtProperties.data()) != VK_SUCCESS)
-            return {};
-
-        for(const auto& Property : ExtProperties) {
-            ExtNames.push_back(Property.extensionName);
-        }
-
-        // Return Value Optimization
-        return ExtNames;
-    }
-
-    std::optional<std::vector<VkPhysicalDeviceProperties>> VkLoader::ListPhysicalDevices() const {
-        uint32_t nDev;
-        if(vkEnumeratePhysicalDevices(m_Instance, &nDev, nullptr) != VK_SUCCESS)
-            return {};
-
-        std::vector<VkPhysicalDevice> PhysDevs {nDev};
-        std::vector<VkPhysicalDeviceProperties> Props {nDev};
-        if(vkEnumeratePhysicalDevices(m_Instance, &nDev, PhysDevs.data()) != VK_SUCCESS)
-            return {};
-
-        for(int i = 0; i < nDev; i++) {
-            vkGetPhysicalDeviceProperties(PhysDevs[i], &Props[i]);  
-        }
-
-        // Return Value Optimization
-        return Props;
-    }
-
-    bool VkLoader::CreateInstance(VkInstanceCreateInfo& create_info, bool silent) {
+    bool VkLoader::CreateInstance(VkInstanceCreateInfo& create_info) {
          try {
             // std::shared_ptr<VkInstance> instance(new VkInstance {helpers::GetRawInstance(&create_info)}, helpers::InstanceDeleter);
             VkInstance instance {helpers::GetRawInstance(&create_info)};
@@ -116,6 +64,8 @@ namespace vkli {
                                 std::vector<std::string>& extensions,
                                 VkApplicationInfo& app_info) 
     {   
+        for(const auto& lyr : layers) { std::clog << "[INFO] Using layer " << lyr << std::endl; }
+        for(const auto& ext : extensions) { std::clog << "[INFO] Using extension " << ext << std::endl; }
         uint32_t nlayers, nexts;
         std::vector<const char *> raw_layer_vect, raw_ext_vect;
         const char* const * layers_c;
@@ -157,47 +107,82 @@ namespace vkli {
         return CreateInstance(create_info);
     }
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!! THIS VARIANT IS BROKEN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // if none of the listed etensions are valid, create a default vkInstance.
     bool VkLoader::CreateInstance(std::vector<PriorityList>& layers_pl, 
                                   std::vector<PriorityList>& extensions_pl, 
                                   VkApplicationInfo&         app_info) 
     {
         std::vector<std::string> layers, extensions;
 
-        FillFromPriorityLists(layers, layers_pl, app_info, LAYER);
-        FillFromPriorityLists(extensions, extensions_pl, app_info, EXTENSION);
+        FillFromPriorityLists(layers, layers_pl, LAYER);
+        FillFromPriorityLists(extensions, extensions_pl, EXTENSION);
 
         return CreateInstance(layers, extensions, app_info);
     }
 
+        void VkLoader::InitLoaderInfo() {
+        uint32_t nExt, nLyr;
+        if(vkEnumerateInstanceExtensionProperties(nullptr, &nExt, nullptr) != VK_SUCCESS ||
+           vkEnumerateInstanceLayerProperties(&nLyr, nullptr) != VK_SUCCESS) {
+               throw std::runtime_error("[ERROR] Vulkan Loader intialisation failed!");
+        }
+        std::vector<VkExtensionProperties> ExtProperties {nExt};
+        std::vector<VkLayerProperties> LyrProperties {nLyr};
+        if(vkEnumerateInstanceExtensionProperties(nullptr, &nExt, ExtProperties.data()) != VK_SUCCESS ||
+           vkEnumerateInstanceLayerProperties(&nLyr, LyrProperties.data()) != VK_SUCCESS) {
+            throw std::runtime_error("[ERROR] Vulkan Loader intialisation failed!");
+        }
+
+        std::vector<std::string> LyrNames, ExtNames;
+        for(const auto& prop : ExtProperties) { ExtNames.push_back(prop.extensionName); }
+        for(const auto& prop : LyrProperties) { LyrNames.push_back(prop.layerName); }
+
+        m_ldrinfo = {
+            .layers = LyrProperties,
+            .lyrnames = LyrNames,
+            .extensions = ExtProperties,
+            .extnames = ExtNames
+        };
+    }
+
+    void VkLoader::InitInstanceInfo() {
+        uint32_t nDev;
+        if(vkEnumeratePhysicalDevices(m_Instance, &nDev, nullptr) != VK_SUCCESS) {
+
+        }
+
+        std::vector<VkPhysicalDevice> PhysDevs {nDev};
+        std::vector<VkPhysicalDeviceProperties> Props {nDev};
+        if(vkEnumeratePhysicalDevices(m_Instance, &nDev, PhysDevs.data()) != VK_SUCCESS) {
+
+        }
+    }
+
     void VkLoader::FillFromPriorityLists(std::vector<std::string>& output, 
                             const std::vector<PriorityList>& PLists,
-                            VkApplicationInfo&         app_info,
                             LyrOrExt                   type) {
+        
         for(const auto& PList : PLists) {
             for(const auto& elem : PList) {
-                std::vector<std::string> velem {elem};
-                std::vector<std::string> empty;
-                bool supported;
                 if(type == LAYER) {
-                    supported = CreateInstance(velem, empty, app_info);
-                } else if(type == EXTENSION) {
-                    supported = CreateInstance(empty, velem, app_info);
+                    if(std::find(m_ldrinfo.lyrnames.begin(), m_ldrinfo.lyrnames.end(), elem) != m_ldrinfo.lyrnames.end()) {
+                        output.push_back(elem);
+                        break;
+                    }
                 }
-                if(supported) {
+                else if(type == EXTENSION) {
+                    if(std::find(m_ldrinfo.extnames.begin(), m_ldrinfo.extnames.end(), elem) != m_ldrinfo.extnames.end()) {
                     output.push_back(elem);
                     break;
-                }       
+                    }
+                }
             }
         }
     }
 
     bool VkLoader::CreateSurface() {
-        // don't create an OpenGL context.
-        VkSurfaceKHR *surface;
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); 
-        m_Window = glfwCreateWindow(1000, 1000, "test", nullptr, nullptr);
+        // TEMPORARY FIX
+        VkSurfaceKHR *surface = new VkSurfaceKHR;
+        m_Window = glfwCreateWindow(1000, 1000, "window", nullptr, nullptr);
         if(glfwCreateWindowSurface(m_Instance, m_Window, nullptr, surface) != VK_SUCCESS)
             return false; 
         m_Surface = surface;
