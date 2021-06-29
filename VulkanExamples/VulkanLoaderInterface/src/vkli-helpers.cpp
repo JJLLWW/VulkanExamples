@@ -56,7 +56,36 @@ namespace vkli {
             return result_instance;
         }
 
-        
+        void GetDevices(VkInstance& inst, InstanceInfo& info) {
+            uint32_t n_dev;
+            if(vkEnumeratePhysicalDevices(inst, &n_dev, nullptr) != VK_SUCCESS) 
+                throw std::runtime_error("[ERROR] Detecting physical devices failed");
+
+            info.n_dev = n_dev;
+            info.resize();
+
+            if(vkEnumeratePhysicalDevices(inst, &n_dev, info.devices.data()) != VK_SUCCESS)
+                throw std::runtime_error("[ERROR] Detecting physical devices failed");
+
+            for(int i = 0; i < n_dev; i++) {
+                vkGetPhysicalDeviceProperties(info.devices[i], &info.dev_props[i]);
+                vkGetPhysicalDeviceFeatures(info.devices[i], &info.dev_feat[i]);
+
+                // queues
+                uint32_t n_queue;
+                vkGetPhysicalDeviceQueueFamilyProperties(info.devices[i], &n_queue, nullptr);
+                info.dev_queue[i].resize(n_queue);
+                vkGetPhysicalDeviceQueueFamilyProperties(info.devices[i], &n_queue, info.dev_queue[i].data());
+
+                // extensions
+                uint32_t n_ext;
+                if(vkEnumerateDeviceExtensionProperties(info.devices[i], nullptr, &n_ext, nullptr) != VK_SUCCESS)
+                    throw std::runtime_error("[ERROR] Detecting physical device extensions failed");
+                info.dev_exts[i].resize(n_ext);
+                if(vkEnumerateDeviceExtensionProperties(info.devices[i], nullptr, &n_ext, info.dev_exts[i].data()) != VK_SUCCESS)
+                    throw std::runtime_error("[ERROR] Detecting physical device extensions failed");
+            }
+        }
     }
 }
 

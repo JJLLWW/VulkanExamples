@@ -16,34 +16,23 @@
 
 #pragma once
 
-#include "vkli/vkapi.hpp"
+#include "vkli/vkli.hpp"
 #include "GLFW/glfw3.h"
 
 #include <vector>
 #include <memory>
 #include <iostream>
-
-typedef void (*VkInstanceDeleter)(VkInstance*);
+#include <unordered_map>
 
 namespace vkli {
     namespace os {
         void LoadEntrypoint();
     }
 
-    // helper functions
     namespace helpers {
         void LoadGlobalLevelFunctions();
         void LoadInstanceLevelFunctions(VkInstance instance);
         VkInstance GetRawInstance(VkInstanceCreateInfo *create_info);
-    }
-
-    // helper data
-    namespace helpers {
-        inline VkInstanceDeleter InstanceDeleter = [](VkInstance *inst) {
-            std::clog << "[INFO] Vulkan instance destroyed" << std::endl;
-            if(vkDestroyInstance != nullptr)
-                vkDestroyInstance(*inst, nullptr);
-            delete inst; 
-        };
+        void GetDevices(VkInstance& inst, InstanceInfo& info);
     }
 }

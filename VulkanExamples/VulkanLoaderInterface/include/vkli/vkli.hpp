@@ -41,6 +41,8 @@ namespace vkli {
 
     // PriorityList[0] is tested, if it is valid it is used, otherwise the next element is tested, and so on.
     typedef std::vector<std::string> PriorityList;
+    typedef std::vector<VkExtensionProperties> Extensions;
+    typedef std::vector<VkQueueFamilyProperties> Queues;
 
     enum LyrOrExt {LAYER, EXTENSION};
 
@@ -53,8 +55,14 @@ namespace vkli {
     };
 
     struct InstanceInfo {
+        uint32_t n_dev;
         std::vector<VkPhysicalDevice> devices;
+        std::vector<Extensions> dev_exts;
+        std::vector<Queues> dev_queue;
         std::vector<VkPhysicalDeviceProperties> dev_props;
+        std::vector<VkPhysicalDeviceFeatures> dev_feat;
+        void resize() { devices.resize(n_dev); dev_exts.resize(n_dev); dev_props.resize(n_dev); 
+                        dev_feat.resize(n_dev); dev_queue.resize(n_dev); }
     };
 
     class VkLoader {
@@ -69,18 +77,20 @@ namespace vkli {
             bool CreateInstance(std::vector<PriorityList>& layers, 
                                 std::vector<PriorityList>& extensions, 
                                 VkApplicationInfo& app_info = default_app_info);
+            bool CreateDevice(VkDeviceCreateInfo& create_info);
+            bool CreateDevice(std::vector<std::string>& extensions);
             bool CreateSurface();
         public:
             LoaderInfo m_ldrinfo;
             InstanceInfo m_instinfo;
         private:
             void InitLoaderInfo();
-            void InitInstanceInfo();
             void FillFromPriorityLists(std::vector<std::string>& output, 
                                        const std::vector<PriorityList>& PLists,
                                        LyrOrExt                   type);
         private:
             VkInstance m_Instance;
+            VkDevice m_Device; // for now just use 1 device
             GLFWwindow *m_Window;
             VkSurfaceKHR *m_Surface; // temporary
     };

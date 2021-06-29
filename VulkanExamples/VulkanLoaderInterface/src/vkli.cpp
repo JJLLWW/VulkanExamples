@@ -47,10 +47,10 @@ namespace vkli {
 
     bool VkLoader::CreateInstance(VkInstanceCreateInfo& create_info) {
          try {
-            // std::shared_ptr<VkInstance> instance(new VkInstance {helpers::GetRawInstance(&create_info)}, helpers::InstanceDeleter);
             VkInstance instance {helpers::GetRawInstance(&create_info)};
             helpers::LoadInstanceLevelFunctions(instance);
             m_Instance = instance;
+            helpers::GetDevices(m_Instance, m_instinfo);
             } catch(std::runtime_error& e) {
             std::clog << e.what() << std::endl;
             return false;
@@ -144,17 +144,81 @@ namespace vkli {
         };
     }
 
-    void VkLoader::InitInstanceInfo() {
-        uint32_t nDev;
-        if(vkEnumeratePhysicalDevices(m_Instance, &nDev, nullptr) != VK_SUCCESS) {
+    bool VkLoader::CreateDevice(VkDeviceCreateInfo& create_info) {
+        // if(vkCreateDevice())
+        return false;
+    }
 
+    bool VkLoader::CreateDevice(std::vector<std::string>& extensions) {
+        // check whether given extensions are supported on any physical devices:
+
+        std::vector<int> capable_device_indeces, capable_qf_indices;
+        std::string failed_extension;
+        for(int i = 0; i < m_instinfo.n_dev; i++) {
+            bool all_supported = true;
+            for(const auto& ext : extensions) {
+                bool supported = false;
+                for(const auto& sup_ext : m_instinfo.dev_exts[i]) {
+                    if(ext == sup_ext.extensionName) {
+                        supported = true;
+                        break;
+                    }
+                }
+                if(!supported) {
+                    all_supported = false;
+                    failed_extension = ext;
+                    break;
+                }
+            }
+            if(all_supported) {
+                capable_device_indeces.push_back(i);
+            }
+        }
+         
+        if(capable_device_indeces.empty()) {
+            std::clog << "[ERROR] No physical device supports the device extension " << failed_extension << std::endl;
+            return false;
         }
 
-        std::vector<VkPhysicalDevice> PhysDevs {nDev};
-        std::vector<VkPhysicalDeviceProperties> Props {nDev};
-        if(vkEnumeratePhysicalDevices(m_Instance, &nDev, PhysDevs.data()) != VK_SUCCESS) {
-
+        // check queue families
+        for(int i : capable_device_indeces) {
+            for(int index = 0; index < m_instinfo.dev_queue[i].size(); index++) {
+                if(m_instinfo.dev_queue[i][index].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                    capable_qf_indices.push_back(index);
+                }
+            }
         }
+
+        // create the logical device
+        std::vector<const char *> c_extensions;
+        for(const auto& ext : extensions) {
+            c_extensions.push_back(ext.c_str());
+        }   
+
+        VkDeviceQueueCreateInfo queue_info {
+            VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            nullptr,
+            0,
+            static_cast<uint32_t>(capable_qf_indices[0]),
+            100,    // queueCount  
+            nullptr // queue priorities
+        };
+
+        VkDeviceCreateInfo create_info {
+            VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+            nullptr,
+            0,
+            1, // queue families
+            &queue_info, // queue families
+            0, // layers (deprecated)
+            nullptr, // layers (deprecated)
+            static_cast<uint32_t>(c_extensions.size()),
+            c_extensions.data(),
+            nullptr // features
+        };
+        // VkDevice handle;
+        // vkCreateDevice(m_instinfo.devices[0], &test_info, nullptr, &m_Device);
+        return true;
     }
 
     void VkLoader::FillFromPriorityLists(std::vector<std::string>& output, 

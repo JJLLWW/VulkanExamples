@@ -30,10 +30,8 @@ int main() {
     };
     test_loader.CreateInstance(layers, extensions);
 
-    for(const auto& layer : test_loader.m_ldrinfo.layers) {
-        std::cerr << layer.layerName << std::endl; 
-    }
-
+    std::vector<std::string> dev_extensions {"VK_KHR_swapchain"};
+    test_loader.CreateDevice(dev_extensions);
     std::cout << test_loader.CreateSurface() << std::endl;
     // temporary
     sleep(1);
