@@ -34,5 +34,7 @@ namespace vkli {
         void LoadInstanceLevelFunctions(VkInstance instance);
         VkInstance GetRawInstance(VkInstanceCreateInfo *create_info);
         void GetDevices(VkInstance& inst, InstanceInfo& info);
+        bool GetSwapchainInfo(VkPhysicalDevice& dev, VkSurfaceKHR& surface,SwapchainInfo& info);
+        bool LoadSwapchainDFPs(DeviceFPs& dfps);
     }
 }

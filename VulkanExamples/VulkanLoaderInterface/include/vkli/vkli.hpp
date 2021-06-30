@@ -65,6 +65,17 @@ namespace vkli {
                         dev_feat.resize(n_dev); dev_queue.resize(n_dev); }
     };
 
+    struct SwapchainInfo {
+        VkSurfaceCapabilitiesKHR scapabilities;
+        std::vector<VkSurfaceFormatKHR> sformats;
+        std::vector<VkPresentModeKHR> prmodes;
+    };
+
+    struct DeviceFPs {
+        VkDevice dev;
+        PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR;
+    };
+
     class VkLoader {
         public:
             // this constructor will throw a std::runtime_error if a working Vulkan Loader cannot be found.
@@ -77,12 +88,13 @@ namespace vkli {
             bool CreateInstance(std::vector<PriorityList>& layers, 
                                 std::vector<PriorityList>& extensions, 
                                 VkApplicationInfo& app_info = default_app_info);
-            bool CreateDevice(VkDeviceCreateInfo& create_info);
+            bool CreateDevice(VkDeviceCreateInfo& create_info, VkPhysicalDevice& pdev);
             bool CreateDevice(std::vector<std::string>& extensions);
             bool CreateSurface();
         public:
             LoaderInfo m_ldrinfo;
             InstanceInfo m_instinfo;
+            SwapchainInfo m_swapinfo;
         private:
             void InitLoaderInfo();
             void FillFromPriorityLists(std::vector<std::string>& output, 
@@ -91,7 +103,9 @@ namespace vkli {
         private:
             VkInstance m_Instance;
             VkDevice m_Device; // for now just use 1 device
+            VkPhysicalDevice m_PhysDevice;
             GLFWwindow *m_Window;
             VkSurfaceKHR *m_Surface; // temporary
+            DeviceFPs m_dfps;
     };
 }

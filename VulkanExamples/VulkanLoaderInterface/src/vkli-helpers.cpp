@@ -86,6 +86,27 @@ namespace vkli {
                     throw std::runtime_error("[ERROR] Detecting physical device extensions failed");
             }
         }
+
+        bool GetSwapchainInfo(VkPhysicalDevice& dev, VkSurfaceKHR& surface, SwapchainInfo& info) {
+            uint32_t n_frmt, n_pmode;
+            // surface capabilities
+            if(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(dev, surface, &info.scapabilities) != VK_SUCCESS) return false;
+            // surface formats
+            if(vkGetPhysicalDeviceSurfaceFormatsKHR(dev, surface, &n_frmt, nullptr) != VK_SUCCESS) return false;
+            info.sformats.resize(n_frmt);
+            if(vkGetPhysicalDeviceSurfaceFormatsKHR(dev, surface, &n_frmt, info.sformats.data()) != VK_SUCCESS) return false;
+            // presentation modes
+            if(vkGetPhysicalDeviceSurfacePresentModesKHR(dev, surface, &n_pmode, nullptr) != VK_SUCCESS) return false;
+            info.prmodes.resize(n_pmode);
+            if(vkGetPhysicalDeviceSurfacePresentModesKHR(dev, surface, &n_pmode, info.prmodes.data()) != VK_SUCCESS) return false;
+
+            return true; 
+        }
+
+        bool LoadSwapchainDFPs(DeviceFPs& dfps) {
+            #define LOAD_DFP(dfps, fun) reinterpret_cast<PFN_##fun>(vkGetDeviceProcAddr(dfps.dev, #fun))
+            dfps.vkCreateSwapchainKHR = LOAD_DFP(dfps, vkCreateSwapchainKHR);
+        }
     }
 }
 

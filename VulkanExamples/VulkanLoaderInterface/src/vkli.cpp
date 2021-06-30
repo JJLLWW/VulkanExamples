@@ -40,6 +40,7 @@ namespace vkli {
 
     VkLoader::~VkLoader() {
         // temporary
+        if(m_Device) vkDestroyDevice(m_Device, nullptr);
         if(m_Surface) vkDestroySurfaceKHR(m_Instance, *m_Surface, nullptr);
         if(m_Instance) vkDestroyInstance(m_Instance, nullptr);
         glfwTerminate();
@@ -144,9 +145,12 @@ namespace vkli {
         };
     }
 
-    bool VkLoader::CreateDevice(VkDeviceCreateInfo& create_info) {
-        // if(vkCreateDevice())
-        return false;
+    bool VkLoader::CreateDevice(VkDeviceCreateInfo& create_info, VkPhysicalDevice& pdev) {
+        if(vkCreateDevice(pdev, &create_info, nullptr, &m_Device) != VK_SUCCESS) {
+            return false;
+        }
+        std::clog << "[INFO] Logical device creation successful" << std::endl;
+        return true;
     }
 
     bool VkLoader::CreateDevice(std::vector<std::string>& extensions) {
@@ -180,7 +184,7 @@ namespace vkli {
             return false;
         }
 
-        // check queue families
+        // check queue families. 
         for(int i : capable_device_indeces) {
             for(int index = 0; index < m_instinfo.dev_queue[i].size(); index++) {
                 if(m_instinfo.dev_queue[i][index].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
@@ -189,19 +193,22 @@ namespace vkli {
             }
         }
 
-        // create the logical device
+        // create the logical device.
         std::vector<const char *> c_extensions;
         for(const auto& ext : extensions) {
             c_extensions.push_back(ext.c_str());
-        }   
+        } 
 
+        std::vector<float> q_priorities{1.0f};  
+
+        // !!!!! FOR NOW JUST USE THE FIRST CAPABLE DEVICE, ONLY USE ONE QUEUE !!!!!
         VkDeviceQueueCreateInfo queue_info {
             VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
             nullptr,
             0,
-            static_cast<uint32_t>(capable_qf_indices[0]),
-            100,    // queueCount  
-            nullptr // queue priorities
+            static_cast<uint32_t>(capable_qf_indices[0]), // index of q family 
+            static_cast<uint32_t>(q_priorities.size()),   // number of qs to create in q family
+            q_priorities.data()
         };
 
         VkDeviceCreateInfo create_info {
@@ -216,9 +223,10 @@ namespace vkli {
             c_extensions.data(),
             nullptr // features
         };
-        // VkDevice handle;
-        // vkCreateDevice(m_instinfo.devices[0], &test_info, nullptr, &m_Device);
-        return true;
+    
+        // !!!!! FOR NOW JUST USE THE FIRST CAPABLE DEVICE !!!!!
+        m_PhysDevice = m_instinfo.devices[capable_device_indeces[0]];
+        return CreateDevice(create_info, m_PhysDevice);
     }
 
     void VkLoader::FillFromPriorityLists(std::vector<std::string>& output, 
@@ -250,6 +258,43 @@ namespace vkli {
         if(glfwCreateWindowSurface(m_Instance, m_Window, nullptr, surface) != VK_SUCCESS)
             return false; 
         m_Surface = surface;
+        if(!helpers::GetSwapchainInfo(m_PhysDevice, *m_Surface, m_swapinfo) || helpers::LoadSwapchainDFPs(m_dfps)) 
+            return false;
+
+        // typedef struct VkSwapchainCreateInfoKHR {
+        // VkStructureType                  sType;
+        // const void*                      pNext;
+        // VkSwapchainCreateFlagsKHR        flags;
+        // VkSurfaceKHR                     surface;
+        // uint32_t                         minImageCount;
+        // VkFormat                         imageFormat;
+        // VkColorSpaceKHR                  imageColorSpace;
+        // VkExtent2D                       imageExtent;
+        // uint32_t                         imageArrayLayers;
+        // VkImageUsageFlags                imageUsage;
+        // VkSharingMode                    imageSharingMode;
+        // uint32_t                         queueFamilyIndexCount;
+        // const uint32_t*                  pQueueFamilyIndices;
+        // VkSurfaceTransformFlagBitsKHR    preTransform;
+        // VkCompositeAlphaFlagBitsKHR      compositeAlpha;
+        // VkPresentModeKHR                 presentMode;
+        // VkBool32                         clipped;
+        // VkSwapchainKHR                   oldSwapchain;
+        // } VkSwapchainCreateInfoKHR;
+
+        // VkSwapchainCreateInfoKHR create_info {
+        //     VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        //     nullptr,
+        //     0,
+        //     *m_Surface,
+        //     1, // minimum number of images
+        //     format,
+        //     colorspace,
+        //     extent,
+
+        // };
+        // VkSwapchainKHR swapchain;
+        // m_dfps.vkCreateSwapchainKHR(m_Device, &create_info, nullptr, &swapchain);
         return true;
     }
 }
