@@ -106,6 +106,7 @@ namespace vkli {
             VkPhysicalDevice m_PhysDevice;
             GLFWwindow *m_Window;
             VkSurfaceKHR *m_Surface; // temporary
+            VkSwapchainKHR *m_Swapchain;
             DeviceFPs m_dfps;
     };
 }

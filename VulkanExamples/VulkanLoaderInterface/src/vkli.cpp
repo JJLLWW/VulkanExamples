@@ -261,40 +261,31 @@ namespace vkli {
         if(!helpers::GetSwapchainInfo(m_PhysDevice, *m_Surface, m_swapinfo) || helpers::LoadSwapchainDFPs(m_dfps)) 
             return false;
 
-        // typedef struct VkSwapchainCreateInfoKHR {
-        // VkStructureType                  sType;
-        // const void*                      pNext;
-        // VkSwapchainCreateFlagsKHR        flags;
-        // VkSurfaceKHR                     surface;
-        // uint32_t                         minImageCount;
-        // VkFormat                         imageFormat;
-        // VkColorSpaceKHR                  imageColorSpace;
-        // VkExtent2D                       imageExtent;
-        // uint32_t                         imageArrayLayers;
-        // VkImageUsageFlags                imageUsage;
-        // VkSharingMode                    imageSharingMode;
-        // uint32_t                         queueFamilyIndexCount;
-        // const uint32_t*                  pQueueFamilyIndices;
-        // VkSurfaceTransformFlagBitsKHR    preTransform;
-        // VkCompositeAlphaFlagBitsKHR      compositeAlpha;
-        // VkPresentModeKHR                 presentMode;
-        // VkBool32                         clipped;
-        // VkSwapchainKHR                   oldSwapchain;
-        // } VkSwapchainCreateInfoKHR;
-
-        // VkSwapchainCreateInfoKHR create_info {
-        //     VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        //     nullptr,
-        //     0,
-        //     *m_Surface,
-        //     1, // minimum number of images
-        //     format,
-        //     colorspace,
-        //     extent,
-
-        // };
-        // VkSwapchainKHR swapchain;
-        // m_dfps.vkCreateSwapchainKHR(m_Device, &create_info, nullptr, &swapchain);
+        int width, height;
+        glfwGetWindowSize(m_Window, &width, &height);
+        VkSwapchainCreateInfoKHR create_info {
+            VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+            nullptr,
+            0,
+            *m_Surface,
+            1, // minimum number of images
+            m_swapinfo.sformats[0].format,
+            m_swapinfo.sformats[0].colorSpace,
+            {static_cast<uint32_t>(width), static_cast<uint32_t>(height)},
+            1, // always 1 if not stereoscopic 3D
+            VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM, // all image usage flags
+            VK_SHARING_MODE_EXCLUSIVE,
+            0,   // unnecessary if not shared
+            nullptr, // unnecessary if not shared
+            VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
+            VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+            VK_PRESENT_MODE_MAILBOX_KHR, // present mode flags
+            VK_TRUE,
+            VK_NULL_HANDLE // old swapchain
+        };
+        VkSwapchainKHR swapchain;
+        if(m_dfps.vkCreateSwapchainKHR(m_Device, &create_info, nullptr, m_Swapchain) != VK_SUCCESS)
+            return false;
         return true;
     }
 }

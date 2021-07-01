@@ -32,7 +32,7 @@ int main() {
 
     std::vector<std::string> dev_extensions {"VK_KHR_swapchain"};
     test_loader.CreateDevice(dev_extensions);
-    std::cout << test_loader.CreateSurface() << std::endl;
+    std::cout << "CREATING SWAPCHAIN AND SURFACE" << test_loader.CreateSurface() << std::endl;
     // temporary
     sleep(1);
 }
